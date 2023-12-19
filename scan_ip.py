@@ -7,8 +7,8 @@ def scan_modbus_devices():
 
     # Thiết lập phạm vi IP mà bạn muốn quét, ví dụ: 192.168.1.1 - 192.168.1.255
     subnet = "192.168.1."
-    start_range = 1
-    end_range = 255
+    start_range = 65
+    end_range = 140
 
     # Lặp qua tất cả các địa chỉ IP trong phạm vi được chỉ định
     for ip in range(start_range, end_range + 1):
